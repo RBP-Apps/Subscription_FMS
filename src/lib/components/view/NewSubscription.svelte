@@ -63,7 +63,6 @@
 						{
 							sheetName: "SUBSCRIPTION",
 							timestamp: new Date().toISOString(),
-							subscriptionNo: `SUB-${(sheetState.subscriptionSheet.length + 1).toString().padStart(4, "0")}`,
 							price: price.toString(),
 							companyName,
 							frequency,
