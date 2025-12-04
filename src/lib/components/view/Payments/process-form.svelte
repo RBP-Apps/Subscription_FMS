@@ -82,28 +82,31 @@
 				}
 
 				const currentRow = sheetState.subscriptionSheet.find(
-					(s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo,
-				);
+  (s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo
+);
 
-				if (!currentRow) {
-					toast.error("Subscription not found");
-					return;
-				}
+if (!currentRow) {
+  toast.error("Subscription not found!");
+  return;
+}
 
-				// Update the subscription sheet with the new price
-				await postSheet({
-					action: "update",
-					rows: [
-						{
-							...currentRow,
-							price: values.price, // Update the price with the edited value
-							actual3: new Date().toISOString(),
-							actual1: "",
-							startDate: new Date(values.startDate).toDateString(),
-							endDate: new Date(values.endDate).toISOString(),
-						},
-					],
-				});
+await postSheet({
+  action: "update",
+  rows: [
+    {
+      sheetName: "SUBSCRIPTION", // Required to target correct sheet
+      subscriptionNo: currentRow.subscriptionNo, // Locator only!
+
+      // 🟢 Only update these 3 columns
+      price: values.price,
+      startDate: new Date(values.startDate).toISOString().split("T")[0],
+      endDate: new Date(values.endDate).toISOString().split("T")[0],
+
+      actual3: new Date().toISOString(), // Status timestamp only
+    }
+  ]
+});
+
 				await postSheet({
 					action: "insert",
 					rows: [
