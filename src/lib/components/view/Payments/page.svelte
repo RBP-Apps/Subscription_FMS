@@ -57,33 +57,33 @@
 	);
 
 	let historyData = $derived(
-		sheetState.paymentSheet
-			.filter(
-				(s) =>
-					authState.user?.role === "admin" ||
-					sheetState.subscriptionSheet.find(
-						(r) => r.subscriptionNo === s.subscriptionNo,
-					)!.subscriberName === authState.user?.username,
-			)
-			.map((s) => {
-				const currentSheet = sheetState.subscriptionSheet.find(
-					(su) => s.subscriptionNo === su.subscriptionNo,
-				)!;
-				const subscriber = sheetState.userSheet.find(
-					(su) => su.username === currentSheet.subscriberName,
-				)!.name;
-				return {
-					company: currentSheet.companyName,
-					insuranceDocument: s.insuranceDocument,
-					paymentMode: s.paymentMode,
-					startDate: new Date(s.startDate),
-					subscriber,
-					subscriptionNo: s.subscriptionNo,
-					transactionId: s.transactionId,
-					paymentDate: new Date(s.timestamp),
-				};
-			}) satisfies paymentHistoryData[],
-	);
+  sheetState.paymentSheet
+    .map((s) => {
+      const currentSheet = sheetState.subscriptionSheet.find(
+        (su) => s.subscriptionNo === su.subscriptionNo
+      );
+
+      if (!currentSheet) return null; // 🛑 Prevent crash
+
+      const subscriber =
+        sheetState.userSheet.find(
+          (su) => su.username === currentSheet.subscriberName
+        )?.name || "";
+
+      return {
+        company: currentSheet.companyName,
+        insuranceDocument: s.insuranceDocument,
+        paymentMode: s.paymentMode,
+        startDate: new Date(s.startDate),
+        subscriber,
+        subscriptionNo: s.subscriptionNo,
+        transactionId: s.transactionId || "",
+        paymentDate: new Date(s.timestamp),
+      };
+    })
+    .filter(Boolean) satisfies paymentHistoryData[]
+);
+
 </script>
 
 <Tabs.Root value="pending">
