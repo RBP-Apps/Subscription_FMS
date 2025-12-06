@@ -94,37 +94,36 @@ await postSheet({
   action: "update",
   rows: [
     {
-      sheetName: "SUBSCRIPTION",
-      rowIndex: currentRow.rowIndex,  // ✅ Add this
-     
-      timestamp: currentRow.timestamp,
-      companyName: currentRow.companyName,
-      subscriberName: currentRow.subscriberName,
-      subscriptionName: currentRow.subscriptionName,
-      frequency: currentRow.frequency,
-      purpose: currentRow.purpose,
-    
-    
+      sheetName: "SUBSCRIPTION", // Required to target correct sheet
+      subscriptionNo: currentRow.subscriptionNo, // Locator only!
+
+      // 🟢 Only update these 3 columns
+      price: values.price,
+      startDate: new Date(values.startDate).toISOString().split("T")[0],
+      endDate: new Date(values.endDate).toISOString().split("T")[0],
+
+      actual3: new Date().toISOString(), // Status timestamp only
     }
   ]
 });
 
-			await postSheet({
-  action: "insert",
-  rows: [
-    {
-      sheetName: "PAYMENT",
-      timestamp: new Date().toISOString(),
-      subscriptionNo: currentRow.subscriptionNo,
-      paymentMode: values.paymentMethod,
-      transactionId: values.transactionId || `TSI-${(sheetState.paymentSheet.length + 1).toString().padStart(4, "0")}`,
-      startDate: new Date(values.startDate).toISOString(),
-      endDate: new Date(values.endDate).toISOString(),  // ✅ Column G
-      updatedPrice: values.price,  // ✅ Column H
-      insuranceDocument: fileUrl,
-    },
-  ],
-});
+				await postSheet({
+					action: "insert",
+					rows: [
+						{
+							sheetName: "PAYMENT",
+							timestamp: new Date().toISOString(),
+							subscriptionNo: currentRow.subscriptionNo,
+							paymentMode: values.paymentMethod,
+							transactionId:
+								values.transactionId ||
+								`TSI-${(sheetState.paymentSheet.length + 1).toString().padStart(4, "0")}`,
+							startDate: new Date(values.startDate).toISOString(),
+							insuranceDocument: fileUrl,
+						},
+					],
+				});
+
 				dialogState.open = false;
 				sheetState.updateSubscription();
 				sheetState.updatePayment();

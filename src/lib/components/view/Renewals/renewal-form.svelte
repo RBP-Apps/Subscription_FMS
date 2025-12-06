@@ -31,25 +31,20 @@
 		z.infer<typeof schema>
 	>({
 		extend: [validator({ schema })],
-	onSubmit: async (values) => {
-    const currentRow = sheetState.subscriptionSheet.find(
-        (s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo,
-    )!;
-   await postSheet({
+		onSubmit: async (values) => {
+			const currentRow = sheetState.subscriptionSheet.find(
+				(s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo,
+			)!;
+			await postSheet({
 				action: "update",
 				rows: [
 					{
-						sheetName: "SUBSCRIPTION",
-						rowIndex: currentRow.rowIndex,
-						timestamp: currentRow.timestamp,
-						companyName: currentRow.companyName,
-						subscriberName: currentRow.subscriberName,
-						subscriptionName: currentRow.subscriptionName,
-						price: currentRow.price,
-						frequency: currentRow.frequency,
-						purpose: currentRow.purpose,
+						...currentRow,
 						actual1: new Date().toISOString(),
-						renewalCount: ((parseInt(currentRow.renewalCount) || 0) + 1).toString(),
+						actual2: "",
+						renewalCount: (
+							(parseInt(currentRow.renewalCount) || 0) + 1
+						).toString(),
 						renewalStatus: values.renew,
 					},
 				],
