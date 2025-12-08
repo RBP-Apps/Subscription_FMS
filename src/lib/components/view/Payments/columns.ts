@@ -24,6 +24,8 @@ export type paymentHistoryData = {
 	transactionId: string;
 	insuranceDocument: string;
 	startDate: Date;
+	updatedPrice:number;
+	endDate:Date;
 };
 
 export const pendingPaymentsColumns: ColumnDef<PendingPaymentsData>[] = [

@@ -49,6 +49,8 @@ export const paymentHeaders = [
 	"transactionId",
 	"startDate",
 	"insuranceDocument",
+	"endDate",
+	"updatedPrice",
 ] as const;
 
 export const userHeaders = [
