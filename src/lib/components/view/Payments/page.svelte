@@ -34,6 +34,13 @@
 		},
 	});
 
+	// Safe date utility function
+	function safeDate(dateString: string | null | undefined): Date | null {
+		if (!dateString || dateString.trim() === "") return null;
+		const date = new Date(dateString);
+		return isNaN(date.getTime()) ? null : date;
+	}
+
 	let pendingData = $derived(
 		sheetState.subscriptionSheet
 			.filter((s) => s.actual3 === "" && s.planned3 !== "")
@@ -42,48 +49,59 @@
 					authState.user?.role === "admin" ||
 					s.subscriberName === authState.user?.username,
 			)
-			.map((s) => ({
-				approvedOn: new Date(s.actual2),
-				company: s.companyName,
-				frequency: s.frequency,
-				price: s.price,
-				subscriberName:
-					sheetState.userSheet.find((u) => u.username === s.subscriberName)
-						?.name || "",
-				subscriptionName: s.subscriptionName,
-				purpose: s.purpose,
-				subscriptionNo: s.subscriptionNo,
-			})) satisfies PendingPaymentsData[],
+			.map((s) => {
+				// Use safeDate to handle invalid dates
+				const approvedOn = safeDate(s.actual2);
+				
+				return {
+					approvedOn: approvedOn || new Date(), // Fallback to current date if invalid
+					company: s.companyName,
+					frequency: s.frequency,
+					price: s.price,
+					subscriberName:
+						sheetState.userSheet.find((u) => u.username === s.subscriberName)
+							?.name || "",
+					subscriptionName: s.subscriptionName,
+					purpose: s.purpose,
+					subscriptionNo: s.subscriptionNo,
+				};
+			}) satisfies PendingPaymentsData[],
 	);
 
 	let historyData = $derived(
-  sheetState.paymentSheet
-    .map((s) => {
-      const currentSheet = sheetState.subscriptionSheet.find(
-        (su) => s.subscriptionNo === su.subscriptionNo
-      );
+		sheetState.paymentSheet
+			.map((s) => {
+				const currentSheet = sheetState.subscriptionSheet.find(
+					(su) => s.subscriptionNo === su.subscriptionNo
+				);
 
-      if (!currentSheet) return null; // 🛑 Prevent crash
+				if (!currentSheet) return null;
 
-      const subscriber =
-        sheetState.userSheet.find(
-          (su) => su.username === currentSheet.subscriberName
-        )?.name || "";
+				const subscriber =
+					sheetState.userSheet.find(
+						(su) => su.username === currentSheet.subscriberName
+					)?.name || "";
 
-      return {
-        company: currentSheet.companyName,
-        insuranceDocument: s.insuranceDocument,
-        paymentMode: s.paymentMode,
-        startDate: new Date(s.startDate),
-        subscriber,
-        subscriptionNo: s.subscriptionNo,
-        transactionId: s.transactionId || "",
-        paymentDate: new Date(s.timestamp),
-      };
-    })
-    .filter(Boolean) satisfies paymentHistoryData[]
-);
+				// Use safeDate for both dates
+				const startDate = safeDate(s.startDate);
+				const paymentDate = safeDate(s.timestamp);
 
+				// Skip if dates are invalid
+				if (!startDate || !paymentDate) return null;
+
+				return {
+					company: currentSheet.companyName,
+					insuranceDocument: s.insuranceDocument,
+					paymentMode: s.paymentMode,
+					startDate,
+					subscriber,
+					subscriptionNo: s.subscriptionNo,
+					transactionId: s.transactionId || "",
+					paymentDate,
+				};
+			})
+			.filter(Boolean) as paymentHistoryData[]
+	);
 </script>
 
 <Tabs.Root value="pending">
@@ -113,7 +131,6 @@
 					bind:loading={sheetState.paymentLoading}
 				/>
 			</Tabs.Content>
-			<Tabs.Content value="history"></Tabs.Content>
 		</div>
 	</div>
 </Tabs.Root>

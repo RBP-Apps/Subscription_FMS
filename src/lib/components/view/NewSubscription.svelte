@@ -44,44 +44,62 @@
 	} = // Add reset here
 		createForm<z.infer<typeof schema>>({
 			extend: [validator({ schema })],
-			onSubmit: async ({
-				companyName,
-				frequency,
-				price,
-				purpose,
-				subscriberName: subName,
-				subscriptionName,
-			}) => {
-				let subscriberName = subName;
-				if (authState.user && authState.user?.role !== "admin") {
-					subscriberName = authState.user.name;
-				}
+		onSubmit: async ({
+    companyName,
+    frequency,
+    price,
+    purpose,
+    subscriberName: subName,
+    subscriptionName,
+}) => {
+    try {
+        let subscriberName = subName;
+        if (authState.user && authState.user?.role !== "admin") {
+            subscriberName = authState.user.name;
+        }
 
-				await postSheet({
-					action: "insert",
-					rows: [
-						{
-							sheetName: "SUBSCRIPTION",
-							timestamp: new Date().toISOString(),
-							price: price.toString(),
-							companyName,
-							frequency,
-							purpose,
-							subscriberName,
-							subscriptionName,
-						},
-					],
-				});
-				sheetState.updateSubscription();
-				toast.success("Request for new subscription has been submitted");
+        // Check if company name is new and add it to master sheet
+        const isNewCompany = !sheetState.masterSheet.companyName.includes(companyName);
+        
+        const rows = [
+            {
+                sheetName: "SUBSCRIPTION",
+                timestamp: new Date().toISOString(),
+                price: price.toString(),
+                companyName,
+                frequency,
+                purpose,
+                subscriberName,
+                subscriptionName,
+            },
+        ];
 
-				// Reset the form after successful submission
-				reset();
-			},
-			onError: (context) => {
-				const firstError = Object.values(context.errors)?.[0] as string;
-				toast.error(firstError || "Submission failed");
-			},
+        // If new company, add it to MASTER sheet
+        if (isNewCompany) {
+            rows.push({
+                sheetName: "MASTER",
+                companyName,
+            });
+        }
+
+        console.log("Submitting data:", rows); // Debug log
+
+        const response = await postSheet({
+            action: "insert",
+            rows,
+        });
+        
+        console.log("Response:", response); // Debug log
+        
+        sheetState.updateSubscription();
+        toast.success("Request for new subscription has been submitted");
+        reset();
+    } catch (error) {
+        console.error("Submission error:", error); // Error log
+        toast.error(error?.message || "Failed to submit");
+        throw error; // Re-throw to trigger onError
+    }
+},
 		});
 
 	$effect(() => {
@@ -98,34 +116,28 @@
 	>
 		<div class="grid gap-6">
 			<div class="grid md:grid-cols-3 gap-6">
-				<div class="grid gap-2">
-					<Label for="companyName">Company Name</Label>
-					<Select.Root
-						type="single"
-						bind:value={$data.companyName}
-						name="companyName"
-						onValueChange={() => setTouched("companyName", true)}
-					>
-						<Tooltip.Root disabled={!$errors.companyName}>
-							<Tooltip.Trigger>
-								<Select.Trigger
-									class="w-full"
-									aria-invalid={$errors.companyName ? true : undefined}
-								>
-									{$data.companyName ? $data.companyName : "Select Company"}
-								</Select.Trigger>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								{$errors.companyName}
-							</Tooltip.Content>
-						</Tooltip.Root>
-						<Select.Content>
-							{#each sheetState.masterSheet.companyName as company}
-								<Select.Item value={company}>{company}</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
+			<div class="grid gap-2">
+    <Label for="companyName">Company Name</Label>
+    <Tooltip.Root disabled={!$errors.companyName}>
+        <Tooltip.Trigger>
+            <Input
+                list="company-list"
+                name="companyName"
+                id="companyName"
+                placeholder="Select or enter company name"
+                on:input={() => setTouched("companyName", true)}
+            />
+            <datalist id="company-list">
+                {#each sheetState.masterSheet.companyName as company}
+                    <option value={company}></option>
+                {/each}
+            </datalist>
+        </Tooltip.Trigger>
+        <Tooltip.Content>
+            {$errors.companyName}
+        </Tooltip.Content>
+    </Tooltip.Root>
+</div>
 				<div class="grid gap-2">
 					<Label for="subscriberName">Subscriber Name</Label>
 					{#if authState.user?.role === "admin"}

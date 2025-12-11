@@ -18,6 +18,7 @@ const headers = {
 	APPROVAL: approvalHeaders,
 	PAYMENT: paymentHeaders,
 	USER: userHeaders,
+	MASTER: ["companyName"],
 };
 
 type Rows = SubscriptionRow | RenewalRow | ApprovalRow | PaymentRow | UserRow;
@@ -25,7 +26,7 @@ type Rows = SubscriptionRow | RenewalRow | ApprovalRow | PaymentRow | UserRow;
 interface PostParams {
 	action: "insert" | "update" | "delete";
 	rows: Partial<
-		Rows & { rowIndex: string; sheetName: Exclude<Sheets, "MASTER"> }
+	Rows & { rowIndex: string; sheetName: Exclude<Sheets, never> }
 	>[];
 }
 
@@ -58,4 +59,5 @@ export default async function ({ rows, action = "insert" }: PostParams) {
 	if (!response.ok) throw new Error("Failed to post data");
 	const result = await response.json();
 	if (!result.success) throw new Error(result.message);
+	return result;
 }

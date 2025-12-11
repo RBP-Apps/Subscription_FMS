@@ -103,7 +103,7 @@ await postSheet({
       subscriptionName: currentRow.subscriptionName,
       frequency: currentRow.frequency,
       purpose: currentRow.purpose,
-    
+      actual3: new Date().toISOString().split('T')[0] 
     
     }
   ]
