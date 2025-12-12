@@ -86,6 +86,7 @@
 							frequency: dialogState.selectedRow.frequency,
 							purpose: dialogState.selectedRow.purpose,
 							actual2: new Date().toISOString(),
+							actual3: "",
 							approvalStatus: values.approval,
 							planned3: values.approval === "Approved" 
 								? getNextPaymentDate(currentRow.frequency)
@@ -111,16 +112,17 @@
 					],
 				});
 
-				dialogState.open = false;
-				sheetState.updateSubscription();
-				sheetState.updateApproval();
-				toast.success("Successfully updated status");
+				   await sheetState.updateSubscription();
+        await sheetState.updateApproval();
+        
+        dialogState.open = false;
+        toast.success("Successfully updated status");
 
-			} catch (e: any) {
-				console.error(e);
-				toast.error("Something went wrong!");
-			}
-		},
+    } catch (e: any) {
+        console.error(e);
+        toast.error("Something went wrong!");
+    }
+},
 	});
 </script>
 

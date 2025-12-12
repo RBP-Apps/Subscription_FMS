@@ -103,6 +103,7 @@ await postSheet({
       subscriptionName: currentRow.subscriptionName,
       frequency: currentRow.frequency,
       purpose: currentRow.purpose,
+	  actual2: currentRow.actual2,
       actual3: new Date().toISOString().split('T')[0] 
     
     }
@@ -125,15 +126,12 @@ await postSheet({
     },
   ],
 });
-				dialogState.open = false;
-				sheetState.updateSubscription();
-				sheetState.updatePayment();
-				toast.success("Successfully updated payment and price");
-			},
-			onError: (context) => {
-				const firstError = Object.values(context.errors)?.[0] as string;
-				toast.error(firstError || "Submission failed");
-			},
+				  await sheetState.updateSubscription();
+    await sheetState.updatePayment();
+    
+    dialogState.open = false;
+    toast.success("Successfully updated payment and price");
+},
 		});
 
 	// Function to handle start date change and auto-calculate end date

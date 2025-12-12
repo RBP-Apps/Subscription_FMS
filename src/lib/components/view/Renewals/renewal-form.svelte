@@ -49,6 +49,8 @@
 						frequency: currentRow.frequency,
 						purpose: currentRow.purpose,
 						actual1: new Date().toISOString(),
+						actual3: "",  // ✅ ADD THIS LINE - Clear payment on renewal
+            planned3: "",
 						renewalCount: ((parseInt(currentRow.renewalCount) || 0) + 1).toString(),
 						renewalStatus: values.renew,
 					},
@@ -69,15 +71,12 @@
 					},
 				],
 			});
-			dialogState.open = false;
-			sheetState.updateSubscription();
-			sheetState.updateApproval();
-			toast.success("Successfully renewed subscription");
-		},
-		onError: (e: any) => {
-			console.log(e);
-			toast.error(e.message);
-		},
+			await sheetState.updateSubscription();
+    await sheetState.updateApproval();
+    
+    dialogState.open = false;
+    toast.success("Successfully renewed subscription");
+},
 	});
 
 	const currencyFormatter = Intl.NumberFormat("en-IN", {
