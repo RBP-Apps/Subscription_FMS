@@ -49,7 +49,7 @@
 						frequency: currentRow.frequency,
 						purpose: currentRow.purpose,
 						actual1: new Date().toISOString(),
-						actual3: "",  // ✅ ADD THIS LINE - Clear payment on renewal
+						
             planned3: "",
 						renewalCount: ((parseInt(currentRow.renewalCount) || 0) + 1).toString(),
 						renewalStatus: values.renew,

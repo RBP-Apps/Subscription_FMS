@@ -104,6 +104,7 @@ await postSheet({
       frequency: currentRow.frequency,
       purpose: currentRow.purpose,
 	  actual2: currentRow.actual2,
+	  price: values.price,
       actual3: new Date().toISOString().split('T')[0] 
     
     }

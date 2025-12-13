@@ -86,7 +86,7 @@
 							frequency: dialogState.selectedRow.frequency,
 							purpose: dialogState.selectedRow.purpose,
 							actual2: new Date().toISOString(),
-							actual3: "",
+							 actual3: currentRow.actual3,
 							approvalStatus: values.approval,
 							planned3: values.approval === "Approved" 
 								? getNextPaymentDate(currentRow.frequency)
