@@ -95,8 +95,7 @@ await postSheet({
   rows: [
     {
       sheetName: "SUBSCRIPTION",
-      rowIndex: currentRow.rowIndex,  // ✅ Add this
-     
+      rowIndex: currentRow.rowIndex,
       timestamp: currentRow.timestamp,
       companyName: currentRow.companyName,
       subscriberName: currentRow.subscriberName,
@@ -104,6 +103,10 @@ await postSheet({
       frequency: currentRow.frequency,
       purpose: currentRow.purpose,
 	  actual2: currentRow.actual2,
+      approvalStatus: currentRow.approvalStatus, // ✅ Preserve existing
+      policyNo: currentRow.policyNo,             // ✅ Preserve existing
+      agentName: currentRow.agentName,           // ✅ Preserve existing
+      fileUpload: currentRow.fileUpload,         // ✅ Preserve existing
 	  price: values.price,
       actual3: new Date().toISOString().split('T')[0] 
     

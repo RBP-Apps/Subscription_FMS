@@ -70,15 +70,18 @@
 					(s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo,
 				)!;
 
-				// ✅ Remove subscriptionNo, startDate (U), endDate (V) - these should NEVER be updated
+				// ✅ Restoration: Using your original exclusion logic as Columns B, U, V are now protected in postSheet.ts
 				const { subscriptionNo, startDate, endDate, ...rowWithoutExcludedFields } = currentRow;
 
-				// ✅ Update SUBSCRIPTION - WITHOUT startDate & endDate
+				// ✅ Update SUBSCRIPTION 
 				await postSheet({
 					action: "update",
 					rows: [
 						{
 							...rowWithoutExcludedFields,
+							policyNo: currentRow.policyNo,   // ✅ Manual addition for non-formula preservation
+							agentName: currentRow.agentName, // ✅ Manual addition for non-formula preservation
+							fileUpload: currentRow.fileUpload, // ✅ Manual addition for non-formula preservation
 							companyName: dialogState.selectedRow.companyName,
 							subscriberName: currentRow.subscriberName,
 							subscriptionName: dialogState.selectedRow.subscriptionName,

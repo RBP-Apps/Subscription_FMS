@@ -26,7 +26,7 @@ type Rows = SubscriptionRow | RenewalRow | ApprovalRow | PaymentRow | UserRow;
 interface PostParams {
 	action: "insert" | "update" | "delete";
 	rows: Partial<
-	Rows & { rowIndex: string; sheetName: Exclude<Sheets, never> }
+		Rows & { rowIndex: string; sheetName: Exclude<Sheets, never> }
 	>[];
 }
 
@@ -36,6 +36,12 @@ export default async function ({ rows, action = "insert" }: PostParams) {
 		const values: Partial<string | null>[] = headers[row.sheetName!].map(
 			(h) => {
 				const val = (row[h as keyof typeof row] as string) ?? "";
+				// ✅ Formula Protection: Never overwrite these columns in SUBSCRIPTION sheet
+				if (row.sheetName === "SUBSCRIPTION") {
+					if (h === "subscriptionNo" || h === "startDate" || h === "endDate") {
+						return null;
+					}
+				}
 				if (h.startsWith("timeDelay") || h.startsWith("planned")) {
 					return null;
 				}

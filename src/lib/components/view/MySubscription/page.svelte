@@ -25,9 +25,22 @@
 						?.name || "",
 				subscriptionName: s.subscriptionName,
 				subscriptionNo: s.subscriptionNo,
+				policyNo: s.policyNo,
+				agentName: s.agentName,
+				fileUpload: s.fileUpload,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				raw: s as any,
 				status: getStatus(s),
 			})) satisfies SubscriptionData[],
 	);
+	
+	$effect(() => {
+		console.log("📊 Subscription Data with Files:", subscriptionData.map(s => ({
+			subscriptionNo: s.subscriptionNo,
+			file: s.fileUpload,
+			hasFile: !!s.fileUpload
+		})));
+	});
 </script>
 
 <div class="md:p-5 md:pt-0">

@@ -21,6 +21,11 @@ export const subscriptionHeaders = [
 	"timeDelay3",
 	"startDate",
 	"endDate",
+	"",
+	"",
+	"policyNo",
+	"agentName",
+	"fileUpload"
 ] as const;
 
 export const renewalHeaders = [

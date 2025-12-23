@@ -66,10 +66,12 @@
 			.map((s) => {
 				const currentRow = sheetState.subscriptionSheet.find(
 					(sh) => s.subscriptionNo === sh.subscriptionNo,
-				)!;
-				const subscriber = sheetState.userSheet.find(
+				);
+				if (!currentRow) return null;
+				const subscriberRow = sheetState.userSheet.find(
 					(su) => su.username === currentRow.subscriberName,
-				)!.name;
+				);
+				const subscriber = subscriberRow?.name || currentRow.subscriberName || "Unknown";
 				return {
 					companyName: currentRow.companyName,
 					frequency: currentRow.frequency,
@@ -81,7 +83,8 @@
 					subscriptionName: currentRow.subscriptionName,
 					subscriptionNo: currentRow.subscriptionNo,
 				};
-			}) satisfies RenewalHistoryData[],
+			})
+			.filter(item => item !== null) satisfies RenewalHistoryData[],
 	);
 </script>
 

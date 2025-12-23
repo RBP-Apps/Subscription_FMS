@@ -49,6 +49,10 @@
 						frequency: currentRow.frequency,
 						purpose: currentRow.purpose,
 						actual1: new Date().toISOString(),
+						approvalStatus: currentRow.approvalStatus, // ✅ Preserve existing
+						policyNo: currentRow.policyNo,             // ✅ Preserve existing
+						agentName: currentRow.agentName,           // ✅ Preserve existing
+						fileUpload: currentRow.fileUpload,         // ✅ Preserve existing
 						
             planned3: "",
 						renewalCount: ((parseInt(currentRow.renewalCount) || 0) + 1).toString(),
@@ -72,7 +76,7 @@
 				],
 			});
 			await sheetState.updateSubscription();
-    await sheetState.updateApproval();
+    await sheetState.updateRenewal(); // ✅ Changed from updateApproval to updateRenewal
     
     dialogState.open = false;
     toast.success("Successfully renewed subscription");
