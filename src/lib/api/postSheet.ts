@@ -18,7 +18,7 @@ const headers = {
 	APPROVAL: approvalHeaders,
 	PAYMENT: paymentHeaders,
 	USER: userHeaders,
-	MASTER: ["companyName"],
+	MASTER: ["companyName", "subscriberName"],
 };
 
 type Rows = SubscriptionRow | RenewalRow | ApprovalRow | PaymentRow | UserRow;

@@ -39,7 +39,8 @@
 			.filter(
 				(s) =>
 					authState.user?.role === "admin" ||
-					s.subscriberName === authState.user?.username,
+					s.subscriberName === authState.user?.username ||
+					s.subscriberName === authState.user?.name,
 			)
 			.map((s) => ({
 				companyName: s.companyName,
@@ -48,7 +49,7 @@
 				frequency: s.frequency,
 				subscriberName:
 					sheetState.userSheet.find((u) => u.username === s.subscriberName)
-						?.name || "",
+						?.name || s.subscriberName,
 				subscriptionName: s.subscriptionName,
 				subscriptionNo: s.subscriptionNo,
 			})) satisfies PendingRenewalData[],
@@ -59,9 +60,16 @@
 			.filter(
 				(s) =>
 					authState.user?.role === "admin" ||
-					sheetState.subscriptionSheet.find(
-						(r) => r.subscriptionNo === s.subscriptionNo,
-					)!.subscriberName === authState.user?.username,
+					(() => {
+						const sub = sheetState.subscriptionSheet.find(
+							(r) => r.subscriptionNo === s.subscriptionNo,
+						);
+						if (!sub) return false;
+						return (
+							sub.subscriberName === authState.user?.username ||
+							sub.subscriberName === authState.user?.name
+						);
+					})(),
 			)
 			.map((s) => {
 				const currentRow = sheetState.subscriptionSheet.find(

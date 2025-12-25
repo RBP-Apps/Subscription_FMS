@@ -42,7 +42,7 @@
 					subscriberName:
 						sheetState.userSheet.find(
 							(u) => u.username === sheet.subscriberName,
-						)?.name || "",
+						)?.name || sheet.subscriberName,
 					subscriptionName: sheet.subscriptionName,
 					price: sheet.price,
 					frequency: sheet.frequency,

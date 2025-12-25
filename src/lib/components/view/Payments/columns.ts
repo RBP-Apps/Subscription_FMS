@@ -24,8 +24,9 @@ export type paymentHistoryData = {
 	transactionId: string;
 	insuranceDocument: string;
 	startDate: Date;
-	updatedPrice:number;
-	endDate:Date;
+	updatedPrice: number;
+	endDate: Date;
+	paymentRiciept: string;
 };
 
 export const pendingPaymentsColumns: ColumnDef<PendingPaymentsData>[] = [
@@ -164,16 +165,48 @@ export const paymentHistoryColumns: ColumnDef<paymentHistoryData>[] = [
 		accessorKey: "insuranceDocument",
 		header: "Insurance Document",
 		cell: ({ row }) => {
-			const cellSnippet = createRawSnippet((getUrl: () => string) => ({
+			const cellSnippet = createRawSnippet((url: any) => ({
 				render: () => {
-					if (!getUrl()) {
+					let val = typeof url === "function" ? url() : url;
+					if (!val || val === "" || typeof val !== "string" || val === "[object Object]") {
 						return `<span class="text-muted-foreground">N/A</span>`;
 					}
-					return `<a class="font-semibold text-accent-foreground underline" href="${getUrl()}">File</a>`;
+					// Convert view links to direct links if they are from Google Drive
+					if (val.includes("drive.google.com/file/d/")) {
+						const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+						if (match && match[1]) {
+							val = `https://drive.google.com/uc?id=${match[1]}`;
+						}
+					}
+					return `<a class="font-semibold text-accent-foreground underline" href="${val}" target="_blank">File</a>`;
 				},
 			}));
 
-			return renderSnippet(cellSnippet, row.getValue("insuranceDocument"));
+			return renderSnippet(cellSnippet, row.getValue("insuranceDocument") || "");
+		},
+	},
+	{
+		accessorKey: "paymentRiciept",
+		header: "Payment Receipt",
+		cell: ({ row }) => {
+			const cellSnippet = createRawSnippet((url: any) => ({
+				render: () => {
+					let val = typeof url === "function" ? url() : url;
+					if (!val || val === "" || typeof val !== "string" || val === "[object Object]") {
+						return `<span class="text-muted-foreground">N/A</span>`;
+					}
+					// Convert view links to direct links if they are from Google Drive
+					if (val.includes("drive.google.com/file/d/")) {
+						const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+						if (match && match[1]) {
+							val = `https://drive.google.com/uc?id=${match[1]}`;
+						}
+					}
+					return `<a class="font-semibold text-accent-foreground underline" href="${val}" target="_blank">Receipt</a>`;
+				},
+			}));
+
+			return renderSnippet(cellSnippet, row.getValue("paymentRiciept") || "");
 		},
 	},
 	{

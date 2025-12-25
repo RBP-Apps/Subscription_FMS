@@ -59,7 +59,11 @@
 
 		// Filter by user role
 		const isUserData = (s: SubscriptionRow | RenewalRow) => {
-			return authState.user?.role === "admin" || s.subscriberName === authState.user?.username;
+			return (
+				authState.user?.role === "admin" ||
+				s.subscriberName === authState.user?.username ||
+				s.subscriberName === authState.user?.name
+			);
 		};
 
 		return {

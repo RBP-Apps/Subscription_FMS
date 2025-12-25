@@ -13,7 +13,8 @@
 			.filter(
 				(s) =>
 					authState.user?.role === "admin" ||
-					s.subscriberName === authState.user?.username,
+					s.subscriberName === authState.user?.username ||
+					s.subscriberName === authState.user?.name,
 			)
 			.map((s) => ({
 				companyName: s.companyName,
@@ -22,7 +23,7 @@
 				price: s.price,
 				subscriberName:
 					sheetState.userSheet.find((u) => u.username === s.subscriberName)
-						?.name || "",
+						?.name || s.subscriberName,
 				subscriptionName: s.subscriptionName,
 				subscriptionNo: s.subscriptionNo,
 				policyNo: s.policyNo,

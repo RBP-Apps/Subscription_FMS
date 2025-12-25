@@ -33,10 +33,8 @@ function parseSheet(sheet: Sheets, data: string[][]): ParseData {
 
 	if (sheet === "MASTER") {
 		return {
-			companyName: data
-				.slice(1)
-				.map((row) => row[0])
-				.filter((x) => x !== ""),
+			companyName: data.slice(1).map((row) => row[0]),
+			subscriberName: data.slice(1).map((row) => row[1]),
 		} as Master;
 	}
 
@@ -46,7 +44,7 @@ function parseSheet(sheet: Sheets, data: string[][]): ParseData {
 		.map((row, i) => {
 			const obj = Object.fromEntries(
 				headers.map((h, j) => {
-					const value = row[j];
+					const value = row[j] ?? "";
 					return [h, value];
 				}),
 			);

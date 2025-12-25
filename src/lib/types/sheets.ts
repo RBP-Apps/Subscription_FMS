@@ -56,6 +56,7 @@ export const paymentHeaders = [
 	"insuranceDocument",
 	"endDate",
 	"updatedPrice",
+	"paymentRiciept",
 ] as const;
 
 export const userHeaders = [
@@ -75,7 +76,7 @@ export type RenewalRow = Record<(typeof renewalHeaders)[number], string>;
 export type ApprovalRow = Record<(typeof approvalHeaders)[number], string>;
 export type PaymentRow = Record<(typeof paymentHeaders)[number], string>;
 export type UserRow = Record<(typeof userHeaders)[number], string>;
-export type Master = { companyName: string[] };
+export type Master = { companyName: string[]; subscriberName: string[] };
 
 export type Sheets =
 	| "SUBSCRIPTION"

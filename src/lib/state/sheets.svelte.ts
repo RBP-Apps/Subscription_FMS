@@ -16,7 +16,7 @@ export class SheetState {
 	approvalSheet = $state<ApprovalRow[]>([]);
 	paymentSheet = $state<PaymentRow[]>([]);
 	userSheet = $state<UserRow[]>([]);
-	masterSheet = $state<Master>({ companyName: [] });
+	masterSheet = $state<Master>({ companyName: [], subscriberName: [] });
 
 	subscriptionLoading = $state(true);
 	renewalLoading = $state(true);
@@ -81,7 +81,7 @@ export class SheetState {
 	}
 
 	async updateMaster() {
-		const { data: res } = await fetchSheet({ sheet: "USER" });
+		const { data: res } = await fetchSheet({ sheet: "MASTER" });
 		this.masterSheet = res as Master;
 	}
 

@@ -57,8 +57,9 @@
 						subscriberName = authState.user.name;
 					}
 
-					const isNewCompany =
-						!sheetState.masterSheet.companyName.includes(companyName);
+					const isNewCompany = companyName && !sheetState.masterSheet.companyName.filter(Boolean).includes(companyName);
+
+					const isNewSubscriber = subscriberName && !sheetState.masterSheet.subscriberName.filter(Boolean).includes(subscriberName);
 
 					// File upload handling
 					let fileUrl = "";
@@ -95,8 +96,7 @@
 						}
 
 						try {
-							console.log("Uploading file:", fileObject.name, fileObject.type);
-
+							console.log("📤 Preparing to upload file to folder:", import.meta.env.VITE_ATTACHMENT_FOLDER);
 							// Upload to the correct Google Drive folder from .env
 							fileUrl = await uploadFile(
 								fileObject,
@@ -130,22 +130,59 @@
 					};
 					rows.push(subscriptionRow);
 
-					if (isNewCompany) {
-						rows.push({
-							sheetName: "MASTER",
-							companyName,
-						});
-					}
-
-					console.log("Submitting data:", rows);
-
+					// 1. Insert into SUBSCRIPTION
 					const response = await postSheet({
 						action: "insert",
-						rows,
+						rows: [subscriptionRow],
 					});
+
+					// 2. Update MASTER for new items (filling gaps)
+					if (isNewCompany || isNewSubscriber) {
+						const masterRows = [];
+
+						if (isNewCompany) {
+							// Find first empty row for company (Column A)
+							let idx = sheetState.masterSheet.companyName.indexOf("");
+							let rowIdx = idx === -1 ? sheetState.masterSheet.companyName.length + 2 : idx + 2;
+							
+							masterRows.push({
+								sheetName: "MASTER",
+								rowIndex: rowIdx.toString(),
+								companyName: companyName,
+								subscriberName: sheetState.masterSheet.subscriberName[rowIdx - 2] || ""
+							});
+						}
+
+						if (isNewSubscriber) {
+							// Find first empty row for subscriber (Column B)
+							let idx = sheetState.masterSheet.subscriberName.indexOf("");
+							let rowIdx = idx === -1 ? sheetState.masterSheet.subscriberName.length + 2 : idx + 2;
+
+							// Check if we already have an update for this row (if so, merge)
+							const existing = masterRows.find(r => r.rowIndex === rowIdx.toString());
+							if (existing) {
+								existing.subscriberName = subscriberName;
+							} else {
+								masterRows.push({
+									sheetName: "MASTER",
+									rowIndex: rowIdx.toString(),
+									companyName: sheetState.masterSheet.companyName[rowIdx - 2] || "",
+									subscriberName: subscriberName
+								});
+							}
+						}
+
+						if (masterRows.length > 0) {
+							await postSheet({
+								action: "update",
+								rows: masterRows
+							});
+						}
+					}
 
 					console.log("Response:", response);
 					sheetState.updateSubscription();
+					sheetState.updateMaster();
 					toast.success("Request for new subscription has been submitted");
 
 					// Reset file state
@@ -200,7 +237,7 @@
 								on:input={() => setTouched("companyName", true)}
 							/>
 							<datalist id="company-list">
-								{#each sheetState.masterSheet.companyName as company}
+								{#each sheetState.masterSheet.companyName.filter(Boolean) as company}
 									<option value={company}></option>
 								{/each}
 							</datalist>
@@ -211,51 +248,25 @@
 					</Tooltip.Root>
 				</div>
 				<div class="grid gap-2">
-					<Label for="subscriberName">Subscriber Name</Label>
-					{#if authState.user?.role === "admin"}
-						<Select.Root
-							type="single"
-							bind:value={$data.subscriberName}
-							name="subscriberName"
-							onValueChange={() => setTouched("subscriberName", true)}
-						>
-							<Tooltip.Root disabled={!$errors.subscriberName}>
-								<Tooltip.Trigger>
-									<Select.Trigger
-										class="w-full"
-										aria-invalid={$errors.subscriberName ? true : undefined}
-									>
-										{$data.subscriberName
-											? sheetState.userSheet.find(
-													(s) => s.username === $data.subscriberName,
-												)?.name
-											: "Select Subscriber"}
-									</Select.Trigger>
-								</Tooltip.Trigger>
-								<Tooltip.Content>
-									{$errors.subscriberName}
-								</Tooltip.Content>
-							</Tooltip.Root>
-							<Select.Content>
-								{#each sheetState.userSheet as { username, name }}
-									<Select.Item value={username}>{name}</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					{:else}
-						<Tooltip.Root disabled={!$errors.subscriberName}>
-							<Tooltip.Trigger>
-								<Input
-									name="subscriberName"
-									id="subscriberName"
-									placeholder="Enter subscriber name"
-									readonly
-								/>
-							</Tooltip.Trigger>
-							<Tooltip.Content>{$errors.subscriberName}</Tooltip.Content>
-						</Tooltip.Root>
-					{/if}
-				</div>
+  <Label for="subscriberName">Subscriber Name</Label>
+  <Tooltip.Root disabled={!$errors.subscriberName}>
+    <Tooltip.Trigger>
+      <Input
+        list="subscriber-list"
+        name="subscriberName"
+        id="subscriberName"
+        placeholder="Select or enter subscriber name"
+        on:input={() => setTouched("subscriberName", true)}
+      />
+       <datalist id="subscriber-list">
+         {#each sheetState.masterSheet.subscriberName.filter(Boolean) as name}
+           <option value={name}></option>
+         {/each}
+       </datalist>
+    </Tooltip.Trigger>
+    <Tooltip.Content>{$errors.subscriberName}</Tooltip.Content>
+  </Tooltip.Root>
+</div>
 				<div class="grid gap-2">
 					<Label for="subscriptionName">Subscription Name</Label>
 					<Tooltip.Root disabled={!$errors.subscriptionName}>

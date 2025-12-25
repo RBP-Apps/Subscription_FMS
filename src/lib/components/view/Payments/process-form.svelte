@@ -41,6 +41,7 @@
 		startDate: z.coerce.date("Please fill the start date"),
 		endDate: z.coerce.date("Please fill the end date"),
 		insuranceDocument: z.file().optional(),
+		paymentRiciept: z.file().optional(),
 	});
 
 	// Initialize with empty values first
@@ -51,6 +52,7 @@
 		startDate: undefined,
 		endDate: undefined,
 		insuranceDocument: undefined,
+		paymentRiciept: undefined,
 	};
 
 	// Update initial values when dialogState is available using $effect
@@ -74,6 +76,8 @@
 				}
 
 				let fileUrl = "";
+				let receiptUrl = "";
+
 				if (values.insuranceDocument) {
 					fileUrl = await uploadFile(
 						values.insuranceDocument,
@@ -81,61 +85,73 @@
 					);
 				}
 
+				if (values.paymentRiciept) {
+					receiptUrl = await uploadFile(
+						values.paymentRiciept,
+						import.meta.env.VITE_ATTACHMENT_FOLDER,
+					);
+				}
+
 				const currentRow = sheetState.subscriptionSheet.find(
-  (s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo
-);
+					(s) => s.subscriptionNo === dialogState.selectedRow.subscriptionNo,
+				);
 
-if (!currentRow) {
-  toast.error("Subscription not found!");
-  return;
-}
+				if (!currentRow) {
+					toast.error("Subscription not found!");
+					return;
+				}
 
-await postSheet({
-  action: "update",
-  rows: [
-    {
-      sheetName: "SUBSCRIPTION",
-      rowIndex: currentRow.rowIndex,
-      timestamp: currentRow.timestamp,
-      companyName: currentRow.companyName,
-      subscriberName: currentRow.subscriberName,
-      subscriptionName: currentRow.subscriptionName,
-      frequency: currentRow.frequency,
-      purpose: currentRow.purpose,
-	  actual2: currentRow.actual2,
-      approvalStatus: currentRow.approvalStatus, // ✅ Preserve existing
-      policyNo: currentRow.policyNo,             // ✅ Preserve existing
-      agentName: currentRow.agentName,           // ✅ Preserve existing
-      fileUpload: currentRow.fileUpload,         // ✅ Preserve existing
-	  price: values.price,
-      actual3: new Date().toISOString().split('T')[0] 
-    
-    }
-  ]
-});
+				await postSheet({
+					action: "update",
+					rows: [
+						{
+							sheetName: "SUBSCRIPTION",
+							rowIndex: currentRow.rowIndex,
+							timestamp: currentRow.timestamp,
+							companyName: currentRow.companyName,
+							subscriberName: currentRow.subscriberName,
+							subscriptionName: currentRow.subscriptionName,
+							frequency: currentRow.frequency,
+							purpose: currentRow.purpose,
+							actual2: currentRow.actual2,
+							approvalStatus: currentRow.approvalStatus,
+							policyNo: currentRow.policyNo,
+							agentName: currentRow.agentName,
+							fileUpload: currentRow.fileUpload,
+							price: values.price,
+							actual3: new Date().toISOString().split("T")[0],
+						},
+					],
+				});
 
-			await postSheet({
-  action: "insert",
-  rows: [
-    {
-      sheetName: "PAYMENT",
-      timestamp: new Date().toISOString(),
-      subscriptionNo: currentRow.subscriptionNo,
-      paymentMode: values.paymentMethod,
-      transactionId: values.transactionId || `TSI-${(sheetState.paymentSheet.length + 1).toString().padStart(4, "0")}`,
-      startDate: new Date(values.startDate).toISOString(),
-      endDate: new Date(values.endDate).toISOString(),  // ✅ Column G
-      updatedPrice: values.price,  // ✅ Column H
-      insuranceDocument: fileUrl,
-    },
-  ],
-});
-				  await sheetState.updateSubscription();
-    await sheetState.updatePayment();
-    
-    dialogState.open = false;
-    toast.success("Successfully updated payment and price");
-},
+				await postSheet({
+					action: "insert",
+					rows: [
+						{
+							sheetName: "PAYMENT",
+							timestamp: new Date().toISOString(),
+							subscriptionNo: currentRow.subscriptionNo,
+							paymentMode: values.paymentMethod,
+							transactionId:
+								values.transactionId ||
+								`TSI-${(sheetState.paymentSheet.length + 1)
+									.toString()
+									.padStart(4, "0")}`,
+							startDate: new Date(values.startDate).toISOString(),
+							endDate: new Date(values.endDate).toISOString(),
+							updatedPrice: values.price,
+							insuranceDocument: fileUrl,
+							paymentRiciept: receiptUrl,
+						},
+					],
+				});
+
+				await sheetState.updateSubscription();
+				await sheetState.updatePayment();
+
+				dialogState.open = false;
+				toast.success("Successfully updated payment and price");
+			},
 		});
 
 	// Function to handle start date change and auto-calculate end date
@@ -362,6 +378,22 @@ await postSheet({
 							/>
 						</Tooltip.Trigger>
 						<Tooltip.Content>{$errors.insuranceDocument}</Tooltip.Content>
+					</Tooltip.Root>
+				</div>
+
+				<div class="grid gap-2">
+					<Label for="paymentRiciept">Upload Payment Receipt</Label>
+					<Tooltip.Root disabled={!$errors.paymentRiciept}>
+						<Tooltip.Trigger>
+							<Input
+								name="paymentRiciept"
+								id="paymentRiciept"
+								placeholder="Upload payment receipt"
+								type="file"
+								class="w-full"
+							/>
+						</Tooltip.Trigger>
+						<Tooltip.Content>{$errors.paymentRiciept}</Tooltip.Content>
 					</Tooltip.Root>
 				</div>
 			</div>

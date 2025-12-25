@@ -34,10 +34,22 @@
 		},
 	});
 
-	// Safe date utility function
-	function safeDate(dateString: string | null | undefined): Date | null {
-		if (!dateString || dateString.trim() === "") return null;
-		const date = new Date(dateString);
+	// Safe date utility function to handle various formats including Google Sheets serial numbers
+	function safeDate(dateValue: any): Date | null {
+		if (!dateValue || (typeof dateValue === 'string' && dateValue.trim() === "")) return null;
+		
+		// If it's already a Date object
+		if (dateValue instanceof Date) return isNaN(dateValue.getTime()) ? null : dateValue;
+		
+		// Try parsing as a Date string
+		let date = new Date(dateValue);
+		
+		// If parsing failed and it looks like a Google Sheets serial number (e.g., 45678)
+		if (isNaN(date.getTime()) && !isNaN(Number(dateValue)) && Number(dateValue) > 30000) {
+			// Google Sheets dates are days since Dec 30, 1899
+			date = new Date((Number(dateValue) - 25569) * 86400 * 1000);
+		}
+		
 		return isNaN(date.getTime()) ? null : date;
 	}
 
@@ -47,7 +59,8 @@
 			.filter(
 				(s) =>
 					authState.user?.role === "admin" ||
-					s.subscriberName === authState.user?.username,
+					s.subscriberName === authState.user?.username ||
+					s.subscriberName === authState.user?.name,
 			)
 			.map((s) => {
 				// Use safeDate to handle invalid dates
@@ -60,7 +73,7 @@
 					price: s.price,
 					subscriberName:
 						sheetState.userSheet.find((u) => u.username === s.subscriberName)
-							?.name || "",
+							?.name || s.subscriberName,
 					subscriptionName: s.subscriptionName,
 					purpose: s.purpose,
 					subscriptionNo: s.subscriptionNo,
@@ -80,28 +93,30 @@
 				const subscriber =
 					sheetState.userSheet.find(
 						(su) => su.username === currentSheet.subscriberName
-					)?.name || "";
+					)?.name || currentSheet.subscriberName || "";
 
 				// Use safeDate for both dates
 				const startDate = safeDate(s.startDate);
 				const paymentDate = safeDate(s.timestamp);
 
-				// Skip if dates are invalid
-				if (!startDate || !paymentDate) return null;
-
 				return {
 					company: currentSheet.companyName,
 					insuranceDocument: s.insuranceDocument,
 					paymentMode: s.paymentMode,
-					startDate,
+					startDate: startDate || new Date(), // Fallback if parsing fails
 					subscriber,
 					subscriptionNo: s.subscriptionNo,
 					transactionId: s.transactionId || "",
-					paymentDate,
+					paymentDate: paymentDate || new Date(), // Fallback if parsing fails
+					paymentRiciept: s.paymentRiciept,
 				};
 			})
 			.filter(Boolean) as paymentHistoryData[]
 	);
+
+	$effect(() => {
+		console.log("💳 Payment History Data:", historyData);
+	});
 </script>
 
 <Tabs.Root value="pending">

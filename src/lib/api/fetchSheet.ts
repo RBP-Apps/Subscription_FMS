@@ -34,9 +34,8 @@ export default async function ({
 	offset = 1,
 	limit,
 }: FetchParams): Promise<{ data: FetchData; meta: FetchMeta }> {
-	let url = `${
-		import.meta.env.VITE_APPS_SCRIPT
-	}?sheetName=${sheet}&offset=${offset}`;
+	let url = `${import.meta.env.VITE_APPS_SCRIPT
+		}?sheetName=${sheet}&offset=${offset}`;
 	if (limit) {
 		url += `&limit=${limit}`;
 	}
@@ -56,10 +55,8 @@ export default async function ({
 		return {
 			meta: result.meta,
 			data: {
-				companyName: data
-					.slice(1)
-					.map((row) => row[0])
-					.filter((x) => x !== ""),
+				companyName: data.slice(1).map((row) => row[0]),
+				subscriberName: data.slice(1).map((row) => row[1]),
 			},
 		};
 	}
@@ -72,7 +69,7 @@ export default async function ({
 			.map((row, i) => {
 				const obj = Object.fromEntries(
 					headers.map((h, j) => {
-						const value = row[j];
+						const value = row[j] ?? ""; // Ensure fallback to empty string if column is missing
 						return [h, value];
 					}),
 				);
