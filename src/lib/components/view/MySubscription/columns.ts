@@ -3,34 +3,53 @@ import { renderComponent, renderSnippet } from "$lib/components/ui/data-table";
 import { Pill } from "$lib/components/ui/pill";
 import type { ColumnDef } from "@tanstack/table-core";
 import { createRawSnippet } from "svelte";
+import ActionButton from "./action-button.svelte";
 
 export type SubscriptionData = {
 	subscriptionNo: string;
 	companyName: string;
 	subscriberName: string;
 	subscriptionName: string;
+	policyNo: string;
+	agentName: string;
+	fileUpload: string;
 	price: string;
+	startDate: Date;
 	endDate: Date;
 	status: string;
+	raw: any;
 };
 
 export const subscriptionColumns: ColumnDef<SubscriptionData>[] = [
 	{
+		id: "action",
+		header: () =>
+			renderSnippet(
+				createRawSnippet(() => ({
+					render: () => `<div class="text-center">Action</div>`,
+				})),
+				"",
+			),
+		cell: ({ row }) =>
+			renderComponent(ActionButton, { currentRow: row.original }),
+		enableGlobalFilter: false,
+	},
+	{
 		accessorKey: "subscriptionNo",
-		header: "Subscription No",
+		header: "Subscription No.",
 		enableGlobalFilter: false,
 	},
 	{
 		accessorKey: "companyName",
-		header: "Company",
+		header: "Company Name",
 	},
 	{
 		accessorKey: "subscriberName",
-		header: "Subscriber",
+		header: "Subscriber Name",
 	},
 	{
 		accessorKey: "subscriptionName",
-		header: "Subscription",
+		header: "Product Name",
 		cell: ({ row }) => {
 			const cellSnippet = createRawSnippet((getName: () => string) => ({
 				render: () => `<div class="text-primary font-bold">${getName()}</div>`,
@@ -39,27 +58,27 @@ export const subscriptionColumns: ColumnDef<SubscriptionData>[] = [
 		},
 	},
 	{
-		accessorKey: "price",
-		header: ({ column }) =>
-			renderComponent(SortingButton, {
-				header: "Price",
-				onclick: column.getToggleSortingHandler(),
-				justify: "end",
-			}),
+		accessorKey: "policyNo",
+		header: "Policy No.",
+	},
+	{
+		accessorKey: "agentName",
+		header: "Agent Name",
+	},
+	{
+		accessorKey: "fileUpload",
+		header: "Upload File",
 		cell: ({ row }) => {
-			const formatter = Intl.NumberFormat("en-IN", {
-				style: "currency",
-				currency: "INR",
-			});
-
-			const cellSnippet = createRawSnippet((getAmount: () => string) => ({
-				render: () => `<div class="text-right font-bold">${getAmount()}</div>`,
+			const cellSnippet = createRawSnippet((url: string) => ({
+				render: () => {
+					if (!url || url === "" || url === "[object Object]") {
+						return `<span class="text-muted-foreground text-xs italic">N/A</span>`;
+					}
+					return `<a class="font-semibold text-primary underline" href="${url}" target="_blank">View File</a>`;
+				},
 			}));
 
-			return renderSnippet(
-				cellSnippet,
-				formatter.format(parseFloat(row.getValue("price"))),
-			);
+			return renderSnippet(cellSnippet, row.getValue("fileUpload") || "");
 		},
 	},
 	{
@@ -80,9 +99,9 @@ export const subscriptionColumns: ColumnDef<SubscriptionData>[] = [
 			}));
 			return renderSnippet(
 				cellSnippet,
-				isNaN(value.getTime())
+				!value || isNaN(value.getTime())
 					? "Not yet decided"
-					: formatter.format(row.getValue("startDate")),
+					: formatter.format(value),
 			);
 		},
 	},
@@ -104,13 +123,12 @@ export const subscriptionColumns: ColumnDef<SubscriptionData>[] = [
 			}));
 			return renderSnippet(
 				cellSnippet,
-				isNaN(value.getTime())
+				!value || isNaN(value.getTime())
 					? "Not yet decided"
-					: formatter.format(row.getValue("endDate")),
+					: formatter.format(value),
 			);
 		},
 	},
-
 	{
 		accessorKey: "status",
 		header: () => {
