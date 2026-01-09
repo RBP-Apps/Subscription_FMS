@@ -4,6 +4,7 @@ import { Pill } from "$lib/components/ui/pill";
 import type { ColumnDef } from "@tanstack/table-core";
 import { createRawSnippet } from "svelte";
 import ActionButton from "./action-button.svelte";
+import FileCell from "./file-cell.svelte";
 
 export type SubscriptionData = {
 	subscriptionNo: string;
@@ -69,16 +70,7 @@ export const subscriptionColumns: ColumnDef<SubscriptionData>[] = [
 		accessorKey: "fileUpload",
 		header: "Upload File",
 		cell: ({ row }) => {
-			const cellSnippet = createRawSnippet((url: string) => ({
-				render: () => {
-					if (!url || url === "" || url === "[object Object]") {
-						return `<span class="text-muted-foreground text-xs italic">N/A</span>`;
-					}
-					return `<a class="font-semibold text-primary underline" href="${url}" target="_blank">View File</a>`;
-				},
-			}));
-
-			return renderSnippet(cellSnippet, row.getValue("fileUpload") || "");
+			return renderComponent(FileCell, { url: row.getValue("fileUpload") || "" });
 		},
 	},
 	{
